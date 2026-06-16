@@ -37,7 +37,7 @@ export function Sidebar() {
   const activeGroupId = pathname.match(/\/chat\/(\d+)/)?.[1]
 
   return (
-    <div className="w-64 flex flex-col h-screen border-r border-border bg-card shrink-0">
+    <div className="w-64 flex flex-col h-dvh overflow-hidden border-r border-border bg-card shrink-0">
       {/* Header */}
       <div className="flex items-center gap-2 p-4 border-b border-border">
         <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0">
@@ -79,7 +79,7 @@ export function Sidebar() {
         <CreateGroupModal />
       </div>
 
-      <ScrollArea className="flex-1 px-2">
+      <ScrollArea className="h-0 flex-1 px-2">
         {isLoadingGroups ? (
           <div className="flex items-center justify-center py-8">
             <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
@@ -127,10 +127,12 @@ export function Sidebar() {
         )}
       </ScrollArea>
 
+      
+
       <Separator />
 
       {/* User section */}
-      <div className="p-3">
+      <div className="p-3 mt-auto border-t border-border bg-card">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="w-full flex items-center gap-2.5 rounded-lg px-2 py-2 hover:bg-accent transition-colors">
@@ -142,7 +144,12 @@ export function Sidebar() {
               <Settings className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="start" className="w-48">
+          <DropdownMenuContent
+  side="top"
+  align="center"
+  sideOffset={8}
+  className="w-56 mb-2"
+>
             <DropdownMenuLabel className="text-xs">{user?.username}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>

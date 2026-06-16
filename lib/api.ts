@@ -108,14 +108,14 @@ export const messagesApi = {
 // ─── Invitations ──────────────────────────────────────────────────────────────
 export const invitationsApi = {
 	// Menga kelgan barcha taklifnomalarni olish
-	getMyInvitations: () => 
+	getMyInvitations: () =>
 		api.get<any[]>('/invitations').then(r => r.data),
 
 	// Taklifnomani qabul qilish
-	accept: (id: number) => 
+	accept: (id: number) =>
 		api.post<any>(`/invitations/${id}/accept`).then(r => r.data),
 
 	// Taklifnomani rad etish
-	reject: (id: number) => 
+	reject: (id: number) =>
 		api.post<any>(`/invitations/${id}/reject`).then(r => r.data),
 }
