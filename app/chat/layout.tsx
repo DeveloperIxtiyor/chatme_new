@@ -1,3 +1,6 @@
+"use client"
+
+import { usePathname } from "next/navigation"
 import { Sidebar } from "@/components/chat/Sidebar"
 
 export default function ChatLayout({
@@ -5,6 +8,13 @@ export default function ChatLayout({
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+
+  // Agar /chat/[id] ko'rinishida bo'lsak — demak foydalanuvchi
+  // biror guruh ichida. Telefonda shu holatda Sidebar yashiriladi,
+  // faqat ChatArea (orqaga qaytish tugmasi bilan) ko'rsatiladi.
+  const isInsideGroup = /^\/chat\/[^/]+$/.test(pathname || "")
+
   return (
     <div className="h-screen bg-background">
       {/* Desktop va planshet */}
@@ -17,9 +27,13 @@ export default function ChatLayout({
 
       {/* Telefon */}
       <div className="flex md:hidden h-full">
-        <main className="flex-1 min-w-0">
-          {children}
-        </main>
+        {isInsideGroup ? (
+          <main className="flex-1 min-w-0">
+            {children}
+          </main>
+        ) : (
+          <Sidebar />
+        )}
       </div>
     </div>
   )

@@ -28,6 +28,8 @@ interface ChatState {
   pollMessages: (groupId: number) => Promise<void>
   sendMessage: (groupId: number, content: string) => Promise<void>
   deleteMessage: (groupId: number, messageId: number) => Promise<void>
+  leaveGroup: (groupId: number) => Promise<void>
+  kickMember: (groupId: number, userId: number) => Promise<void>
   addMessage: (groupId: number, message: any) => void
 }
 
@@ -53,7 +55,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set(state => ({ groups: [group, ...state.groups] })),
 
   removeGroup: groupId =>
-    set(state => ({ 
+    set(state => ({
       groups: state.groups.filter(g => g.id !== groupId),
       activeGroupId: state.activeGroupId === groupId ? null : state.activeGroupId
     })),
@@ -92,12 +94,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const newMsg = await messagesApi.send(groupId, content)
       set(state => {
         const currentMsgs = getSafeMessagesArray(state.messages[groupId])
-        
+
         // Защита от дубликатов
         if (currentMsgs.some(m => m.id === newMsg.id)) {
           return { isSending: false }
         }
-        
+
         return {
           messages: { ...state.messages, [groupId]: [...currentMsgs, newMsg] },
           isSending: false
@@ -128,11 +130,32 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
+  leaveGroup: async (groupId) => {
+    try {
+      await groupsApi.leave(groupId)
+      set(state => ({
+        groups: state.groups.filter(g => g.id !== groupId),
+        activeGroupId: state.activeGroupId === groupId ? null : state.activeGroupId
+      }))
+    } catch (error) {
+      console.error("Guruhdan chiqishda xato:", error)
+      throw error
+    }
+  },
+
+  kickMember: async (groupId, userId) => {
+    try {
+      await groupsApi.kickMember(groupId, userId)
+    } catch (error) {
+      console.error("A'zoni chiqarishda xato:", error)
+      throw error
+    }
+  },
 
   addMessage: (groupId, message) => set((state) => {
     const currentMsgs = getSafeMessagesArray(state.messages[groupId])
     if (currentMsgs.some(m => m.id === message.id)) return state
-    
+
     return {
       messages: {
         ...state.messages,

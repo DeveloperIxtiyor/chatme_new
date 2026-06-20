@@ -129,7 +129,7 @@ export default function ProfilePage() {
 									rows={3}
 									maxLength={300}
 								/>
-								<p className='text-xs text-muted-foreground text-right'>
+								<p className='text-xs text-muted-foreground'>
 									{bio.length}/300
 								</p>
 							</div>

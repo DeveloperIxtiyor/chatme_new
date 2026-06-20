@@ -41,15 +41,32 @@ export function CreateGroupModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0">
+        <Button
+          className="w-full justify-start gap-2 rounded-3xl border border-primary/20 bg-card/95 px-4 py-3 text-sm font-semibold text-foreground shadow-lg shadow-primary/20 transition hover:bg-card"
+        >
           <Plus className="h-4 w-4" />
+          Yangi guruh
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Yangi guruh yaratish</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleCreate} className="space-y-4 mt-2">
+      <DialogContent className="max-w-xl w-full rounded-[2rem] border border-border bg-card shadow-lg shadow-primary/10 p-0 overflow-hidden">
+        <div className="relative overflow-hidden bg-linear-to-r from-violet-600 via-fuchsia-600 to-pink-600 px-6 py-8 text-white">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.12),transparent_30%)]" />
+          <div className="relative">
+            <div className="text-xs uppercase tracking-[0.35em] text-white/80">ChatMe</div>
+            <h2 className="mt-4 text-3xl font-semibold">Yangi guruh yaratish</h2>
+            <p className="mt-3 text-sm text-white/80 max-w-lg">
+              Guruh nomi va tavsifini kiriting. So‘ngra a’zolarni taklif qiling va suhbatni boshlang.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+          >
+            <span className="text-lg leading-none">×</span>
+          </button>
+        </div>
+        <form onSubmit={handleCreate} className="space-y-5 px-6 py-6">
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="space-y-2">
             <Label htmlFor="group-name">Guruh nomi *</Label>
@@ -60,6 +77,7 @@ export function CreateGroupModal() {
               onChange={(e) => setName(e.target.value)}
               required
               maxLength={100}
+              className="bg-input/90 border-border text-foreground"
             />
           </div>
           <div className="space-y-2">
@@ -70,15 +88,16 @@ export function CreateGroupModal() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               maxLength={500}
-              rows={3}
+              rows={4}
+              className="bg-input/90 border-border text-foreground"
             />
           </div>
-          <div className="flex gap-2 justify-end">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => setOpen(false)}>
               Bekor
             </Button>
-            <Button type="submit" disabled={isLoading || !name.trim()}>
-              {isLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Yaratilmoqda...</> : "Yaratish"}
+            <Button type="submit" className="w-full sm:w-auto bg-linear-to-br from-violet-500 to-fuchsia-500 text-white shadow-xl shadow-violet-500/20" disabled={isLoading || !name.trim()}>
+              {isLoading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Yaratilmoqda...</> : "Yaratish"}
             </Button>
           </div>
         </form>

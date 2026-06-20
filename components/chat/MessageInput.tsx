@@ -44,7 +44,7 @@ export function MessageInput({ groupId }: MessageInputProps) {
   }
 
   return (
-    <div className="flex items-end gap-2 p-4 border-t border-border bg-background">
+    <div className="flex items-end gap-2 p-4 border-t border-border bg-card/90">
       <div className="flex-1 relative">
         <textarea
           ref={textareaRef}
@@ -54,9 +54,9 @@ export function MessageInput({ groupId }: MessageInputProps) {
           placeholder="Xabar yozing... (Enter — yuborish)"
           rows={1}
           className={cn(
-            "w-full resize-none rounded-xl border border-input bg-muted/50 px-4 py-2.5 text-sm",
-            "focus:outline-none focus:ring-2 focus:ring-ring transition-colors",
-            "placeholder:text-muted-foreground overflow-hidden min-h-[40px] max-h-[120px]"
+            "w-full resize-none rounded-2xl border border-border bg-input/90 px-4 py-2.5 text-sm text-foreground",
+            "focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors",
+            "placeholder:text-muted-foreground overflow-hidden min-h-10 max-h-30"
           )}
           disabled={isSending}
         />
@@ -65,7 +65,7 @@ export function MessageInput({ groupId }: MessageInputProps) {
         size="icon"
         onClick={handleSend}
         disabled={!content.trim() || isSending}
-        className="h-10 w-10 rounded-xl shrink-0"
+        className="h-10 w-10 rounded-2xl bg-linear-to-br from-violet-500 to-fuchsia-500 text-white shadow-xl shrink-0"
       >
         {isSending ? (
           <Loader2 className="h-4 w-4 animate-spin" />

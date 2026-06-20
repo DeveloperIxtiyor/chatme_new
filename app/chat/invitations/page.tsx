@@ -9,8 +9,15 @@ import { getInitials } from '@/lib/utils'
 interface Invitation {
   id: number
   group_id: number
-  group_name: string
-  invited_by: string
+  group_name?: string
+  group?: {
+    id: number
+    name: string
+  }
+  invited_by?: string
+  inviter?: {
+    username: string
+  }
   created_at: string
 }
 
@@ -93,39 +100,18 @@ export default function InvitationsPage() {
               <div key={invite.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card shadow-sm">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="h-10 w-10 rounded-lg bg-violet-500/10 text-violet-500 flex items-center justify-center font-bold shrink-0">
-                    {getInitials(invite.group_name)}
+                    {getInitials(invite.group?.name || invite.group_name || "Noma'lum guruh")}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-sm font-semibold truncate">{invite.group_name}</h4>
-                    <p className="text-xs text-muted-foreground truncate">
-                      Taklif qildi: <span className="font-medium text-foreground">@{invite.invited_by}</span>
-                    </p>
+                    <h4 className="text-sm font-semibold truncate">{invite.group?.name || invite.group_name}</h4>
+                    <p className="text-xs text-muted-foreground truncate">Taklif qildi: <span className="font-medium text-foreground">@{invite.inviter?.username || invite.invited_by || 'no-name'}</span></p>
                   </div>
                 </div>
-
                 <div className="flex items-center gap-2 shrink-0">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/20 border-green-200"
-                    onClick={() => handleAccept(invite.id)}
-                    disabled={actionId === invite.id}
-                  >
-                    {actionId === invite.id ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <>
-                        <Check className="h-3.5 w-3.5 mr-1" /> Qabul qilish
-                      </>
-                    )}
+                  <Button size="sm" variant="outline" onClick={() => handleAccept(invite.id)} disabled={actionId === invite.id}>
+                    {actionId === invite.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Check className="h-3.5 w-3.5 mr-1" /> Qabul qilish</>}
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => handleReject(invite.id)}
-                    disabled={actionId === invite.id}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => handleReject(invite.id)} disabled={actionId === invite.id}>
                     <X className="h-3.5 w-3.5 mr-1" /> Rad etish
                   </Button>
                 </div>

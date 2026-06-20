@@ -33,12 +33,11 @@ export function MessageItem({ message, groupId, isAdmin }: MessageItemProps) {
     }
   }
 
-  // formatTime o'rniga JavaScript Date bilan formatlash funksiyasi
   const displayTime = (isoString: string) => {
     try {
-      return new Date(isoString).toLocaleTimeString([], { 
-        hour: "2-digit", 
-        minute: "2-digit" 
+      return new Date(isoString).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
       })
     } catch {
       return ""
@@ -62,38 +61,48 @@ export function MessageItem({ message, groupId, isAdmin }: MessageItemProps) {
       )}
       <div className={cn("max-w-[70%] flex flex-col gap-1", isOwn ? "items-end" : "items-start")}>
         {!isOwn && (
-          <span className="text-xs font-medium text-muted-foreground px-1">
+          <span className="text-xs font-bold text-primary px-1">
             {message.sender.username}
           </span>
         )}
-        <div className={cn(
-          "relative rounded-2xl px-4 py-2.5 text-sm shadow-sm",
-          isOwn
-            ? "bg-primary text-primary-foreground rounded-tr-sm"
-            : "bg-muted text-foreground rounded-tl-sm"
-        )}>
-          <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
-          <p className={cn(
-            "text-[10px] mt-1 select-none",
-            isOwn ? "text-primary-foreground/70 text-right" : "text-muted-foreground text-right"
-          )}>
-            {displayTime(message.created_at)}
-          </p>
-          {canDelete && hovered && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                "absolute top-1 h-6 w-6 opacity-80 hover:opacity-100 hover:bg-destructive/20 hover:text-destructive",
-                isOwn ? "right-full mr-1" : "left-full ml-1"
-              )}
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
+
+        {isOwn ? (
+          <div className="relative rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm bg-primary text-primary-foreground">
+            <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
+            <p className="text-[10px] mt-1 select-none text-primary-foreground/70 text-right">
+              {displayTime(message.created_at)}
+            </p>
+            {canDelete && hovered && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute top-1 right-full mr-1 h-6 w-6 opacity-80 hover:opacity-100 hover:bg-destructive/20 hover:text-destructive"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="relative px-1 py-0.5 text-sm text-foreground">
+            <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
+            <p className="text-[10px] mt-1 select-none text-muted-foreground text-right">
+              {displayTime(message.created_at)}
+            </p>
+            {canDelete && hovered && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute top-1 left-full ml-1 h-6 w-6 opacity-80 hover:opacity-100 hover:bg-destructive/20 hover:text-destructive"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

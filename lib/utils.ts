@@ -7,8 +7,9 @@ export function cn(...inputs: ClassValue[]) {
 
 export function getAvatarColor(id: number): string {
   const colors = [
-    'bg-violet-500', 'bg-blue-500', 'bg-green-500',
-    'bg-orange-500', 'bg-pink-500',
+    'bg-avatar-blue', 'bg-avatar-orange', 'bg-avatar-teal',
+    'bg-avatar-amber', 'bg-avatar-green', 'bg-avatar-pink',
+    'bg-avatar-purple',
   ]
   return colors[id % colors.length]
 }

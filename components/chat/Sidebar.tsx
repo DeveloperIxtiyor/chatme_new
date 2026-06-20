@@ -1,11 +1,12 @@
 "use client"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
-  MessageCircle, Users, Bell, LogOut, User, Settings,
+  MessageCircle, Users, Bell, LogOut, User, Settings, Search,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { UserAvatar } from "@/components/shared/UserAvatar"
@@ -22,6 +23,7 @@ import {
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const [search, setSearch] = useState("")
   const { groups, fetchGroups, isLoadingGroups } = useChatStore()
   const { user, logout } = useAuthStore()
 
@@ -29,43 +31,68 @@ export function Sidebar() {
     fetchGroups()
   }, [fetchGroups])
 
+  const filteredGroups = groups.filter((group) =>
+    group.name.toLowerCase().includes(search.toLowerCase()) ||
+    group.description?.toLowerCase().includes(search.toLowerCase())
+  )
+
   const handleLogout = () => {
     logout()
-    router.push("/login")
+    router.replace("/login")
+    if (typeof window !== "undefined") {
+      window.location.href = "/login"
+    }
   }
 
   const activeGroupId = pathname.match(/\/chat\/(\d+)/)?.[1]
 
   return (
-    <div className="w-64 flex flex-col h-dvh overflow-hidden border-r border-border bg-card shrink-0">
+    <div className="w-full md:w-64 flex flex-col h-dvh overflow-hidden border-r border-border bg-background/90 shrink-0">
       {/* Header */}
-      <div className="flex items-center gap-2 p-4 border-b border-border">
-        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0">
-          <MessageCircle className="h-4 w-4 text-white" />
+      <div className="flex flex-col gap-3 p-4 border-b border-border bg-card/80">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-2xl bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/20">
+            <MessageCircle className="h-4 w-4 text-white" />
+          </div>
+          <span className="font-bold text-lg bg-linear-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
+            ChatMe
+          </span>
+          <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle />
+          </div>
         </div>
-        <span className="font-bold text-lg bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
-          ChatMe
-        </span>
-        <div className="ml-auto flex items-center gap-1">
-          <ThemeToggle />
+
+        <div className="space-y-2">
+          <div className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+            Guruhlarni qidirish
+          </div>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="@username yoki guruh nomi..."
+              className="pl-10 rounded-2xl bg-input/80 border border-border text-foreground placeholder:text-muted-foreground"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Nav icons */}
+      {/* Top nav */}
       <div className="flex items-center gap-1 px-3 py-2 border-b border-border">
         <Link href="/chat" className={cn(
           "flex-1 flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-colors",
           !activeGroupId && pathname === "/chat"
-            ? "bg-primary/10 text-primary"
-            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            ? "bg-linear-to-r from-violet-500 to-purple-600 text-white shadow-lg"
+            : "text-muted-foreground hover:bg-card/80 hover:text-foreground"
         )}>
           <Users className="h-3.5 w-3.5" /> Guruhlar
         </Link>
         <Link href="/chat/invitations" className={cn(
           "flex-1 flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-colors",
           pathname === "/chat/invitations"
-            ? "bg-primary/10 text-primary"
-            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            ? "bg-linear-to-r from-violet-500 to-purple-600 text-white shadow-lg"
+            : "text-muted-foreground hover:bg-card/80 hover:text-foreground"
         )}>
           <Bell className="h-3.5 w-3.5" /> Takliflar
         </Link>
@@ -86,21 +113,21 @@ export function Sidebar() {
           </div>
         ) : groups.length === 0 ? (
           <div className="text-center py-8 text-sm text-muted-foreground px-4">
-            <Users className="h-8 w-8 mx-auto mb-2 opacity-30" />
+            <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
             <p>Hali guruhlar yo&apos;q</p>
-            <p className="text-xs mt-1">Yangi guruh yarating yoki taklif kuting</p>
+            <p className="text-xs mt-1 text-muted-foreground">Yangi guruh yarating yoki taklif kuting</p>
           </div>
         ) : (
           <div className="space-y-0.5 pb-2">
-            {groups.map((group) => {
+            {(filteredGroups.length ? filteredGroups : groups).map((group) => {
               const isActive = activeGroupId === String(group.id)
               return (
                 <Link key={group.id} href={`/chat/${group.id}`}>
                   <div className={cn(
-                    "flex items-center gap-3 rounded-lg px-2 py-2 cursor-pointer transition-colors",
+                    "flex items-center gap-3 rounded-3xl px-3 py-3 cursor-pointer transition-colors",
                     isActive
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-accent text-foreground"
+                      ? "bg-linear-to-r from-violet-500 to-purple-600 text-white shadow-xl"
+                      : "hover:bg-card/80 text-foreground"
                   )}>
                     <div className={cn(
                       "h-9 w-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0",
@@ -127,29 +154,29 @@ export function Sidebar() {
         )}
       </ScrollArea>
 
-      
+
 
       <Separator />
 
       {/* User section */}
-      <div className="p-3 mt-auto border-t border-border bg-card">
+      <div className="p-3 mt-auto border-t border-border bg-card/80">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="w-full flex items-center gap-2.5 rounded-lg px-2 py-2 hover:bg-accent transition-colors">
+            <button className="w-full flex items-center gap-2.5 rounded-2xl px-3 py-3 hover:bg-card/80 transition-colors">
               <UserAvatar username={user?.username || "?"} avatar={user?.avatar} id={user?.id} size="sm" />
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-medium truncate">{user?.username}</p>
+                <p className="text-sm font-medium truncate text-foreground">{user?.username}</p>
                 <p className="text-xs text-muted-foreground">Online</p>
               </div>
               <Settings className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-  side="top"
-  align="center"
-  sideOffset={8}
-  className="w-56 mb-2"
->
+            side="top"
+            align="center"
+            sideOffset={8}
+            className="w-56 mb-2"
+          >
             <DropdownMenuLabel className="text-xs">{user?.username}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
