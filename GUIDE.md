@@ -1707,3 +1707,12 @@ Asosiy qadamlar tugagandan keyin quyidagilarni mustaqil amalga oshirishingiz mum
 ---
 
 _Omad! Savollar bo'lsa, har bir qadam oxiridagi tekshiruv ro'yxatiga qarang._
+
+# Keyingi ishlar
+
+# 1. Response
+# 2. SEO qilish kerak app layoutda guruh chat ilovasi metadata 
+# 3. Reply Bekend uzgarsa qoshish kerak
+# 4. Dizaynni togirlash deploy
+# 5. admin bohqalarni xabarini ham uchira olishi kerak
+# 6. avatarni togirlash kerak

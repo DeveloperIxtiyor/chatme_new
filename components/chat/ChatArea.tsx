@@ -56,6 +56,12 @@ export function ChatArea({ groupId }: ChatAreaProps) {
   const [selectedMessageId, setSelectedMessageId] = useState<number | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // ── Selection mode (bir nechta xabarni birdan o'chirish) ───────
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
+
   const [infoOpen, setInfoOpen] = useState(false)
   const [activeInfoTab, setActiveInfoTab] = useState<'general' | 'members' | 'invite'>('general')
   const [editing, setEditing] = useState(false)
@@ -202,6 +208,56 @@ export function ChatArea({ groupId }: ChatAreaProps) {
       console.error("O'chirishda xato:", err)
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  // ── Kim xabarni o'chira oladi: o'zi yozgan YOKI admin/owner ────
+  const canDeleteMessage = (senderUsername: string) => {
+    return getIsMe(senderUsername) || isAdmin
+  }
+
+  // ── Selection mode handlerlari ─────────────────────────────────
+  const toggleSelectMode = () => {
+    setSelectMode(v => !v)
+    setSelectedIds(new Set())
+  }
+
+  const toggleSelectMessage = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const handleMessageClick = (msg: any) => {
+    const senderName = msg.sender?.username ?? 'Foydalanuvchi'
+    if (!canDeleteMessage(senderName)) return
+    if (selectMode) {
+      toggleSelectMessage(msg.id)
+    } else {
+      openDeleteModal(msg.id)
+    }
+  }
+
+  const confirmBulkDelete = async () => {
+    if (!groupId || selectedIds.size === 0) return
+    setIsBulkDeleting(true)
+    try {
+      const ids = Array.from(selectedIds)
+      for (const id of ids) {
+        try {
+          await deleteMessage(groupId, id)
+        } catch (err) {
+          console.error(`Xabar ${id} o'chmadi:`, err)
+        }
+      }
+      setBulkDeleteDialogOpen(false)
+      setSelectedIds(new Set())
+      setSelectMode(false)
+    } finally {
+      setIsBulkDeleting(false)
     }
   }
 
@@ -372,10 +428,31 @@ export function ChatArea({ groupId }: ChatAreaProps) {
               <DropdownMenuItem onClick={openInvite} className="gap-2 cursor-pointer">
                 <UserPlus className="h-4 w-4" /> Taklif yuborish
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={toggleSelectMode} className="gap-2 cursor-pointer">
+                <Check className="h-4 w-4" /> Xabarlarni tanlash
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
+
+      {/* SELECT MODE BAR */}
+      {selectMode && (
+        <div className="flex items-center justify-between px-3 md:px-4 py-2 bg-violet-600 text-white z-10">
+          <Button variant="ghost" size="sm" className="text-white hover:bg-white/15 gap-1.5"
+            onClick={toggleSelectMode}>
+            <X className="h-4 w-4" /> Bekor qilish
+          </Button>
+          <span className="text-sm font-medium">{selectedIds.size} tanlandi</span>
+          <Button variant="ghost" size="sm"
+            className="text-white hover:bg-white/15 gap-1.5 disabled:opacity-50"
+            disabled={selectedIds.size === 0}
+            onClick={() => setBulkDeleteDialogOpen(true)}>
+            <Trash2 className="h-4 w-4" /> O&apos;chirish
+          </Button>
+        </div>
+      )}
 
       {/* MESSAGES */}
       <div className="flex-1 overflow-y-auto p-3 md:p-4 relative">
@@ -405,24 +482,47 @@ export function ChatArea({ groupId }: ChatAreaProps) {
             currentMessages.map((msg: any) => {
               const senderName = msg.sender?.username ?? 'Foydalanuvchi'
               const isMe = getIsMe(senderName)
+              const deletable = canDeleteMessage(senderName)
+              const isSelected = selectedIds.has(msg.id)
               return (
                 <div key={msg.id}
                   className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} space-y-1 group`}>
                   <div className={`flex items-center gap-2 max-w-[85%] md:max-w-[72%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                    {selectMode && deletable && (
+                      <button
+                        type="button"
+                        onClick={() => toggleSelectMessage(msg.id)}
+                        className={cn(
+                          'h-5 w-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors',
+                          isSelected ? 'bg-violet-500 border-violet-500' : 'border-muted-foreground/40 bg-transparent'
+                        )}>
+                        {isSelected && <Check className="h-3 w-3 text-white" />}
+                      </button>
+                    )}
                     {isMe ? (
                       <div
-                        className="p-3 rounded-2xl wrap-break-word cursor-pointer transition-transform active:scale-[0.99]
-                                   bg-linear-to-br from-violet-500 to-fuchsia-500 text-white rounded-tr-none shadow-xl"
-                        onClick={() => openDeleteModal(msg.id)}>
+                        className={cn(
+                          "p-3 rounded-2xl wrap-break-word transition-transform active:scale-[0.99]",
+                          "bg-linear-to-br from-violet-500 to-fuchsia-500 text-white rounded-tr-none shadow-xl",
+                          deletable && "cursor-pointer",
+                          isSelected && "ring-2 ring-white"
+                        )}
+                        onClick={() => handleMessageClick(msg)}>
                         <p className="text-sm leading-relaxed">{msg.content}</p>
                       </div>
                     ) : (
-                      <div className="rounded-3xl border border-border bg-card/90 backdrop-blur-sm p-3">
+                      <div
+                        className={cn(
+                          "rounded-3xl border border-border bg-card/90 backdrop-blur-sm p-3",
+                          deletable && "cursor-pointer",
+                          isSelected && "ring-2 ring-violet-500"
+                        )}
+                        onClick={() => handleMessageClick(msg)}>
                         <p className="text-[11px] font-semibold mb-1 text-violet-400">{senderName}</p>
                         <p className="text-sm leading-relaxed text-foreground">{msg.content}</p>
                       </div>
                     )}
-                    {isMe && (
+                    {!selectMode && deletable && (
                       <Button onClick={() => openDeleteModal(msg.id)}
                         variant="ghost" size="icon"
                         className="h-8 w-8 text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all rounded-xl">
@@ -477,6 +577,28 @@ export function ChatArea({ groupId }: ChatAreaProps) {
             <Button variant="destructive" className="rounded-xl flex-1 sm:flex-none"
               onClick={confirmDelete} disabled={isDeleting}>
               {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Hamma uchun o'chirish"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL 1b — Bulk delete messages */}
+      <Dialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <DialogContent className="max-w-xs sm:max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold">Xabarlarni o&apos;chirish</DialogTitle>
+            <DialogDescription className="text-sm">
+              Tanlangan {selectedIds.size} ta xabarni hamma uchun o&apos;chirib tashlamoqchimisiz?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 justify-end mt-4">
+            <Button variant="ghost" className="rounded-xl flex-1 sm:flex-none"
+              onClick={() => setBulkDeleteDialogOpen(false)} disabled={isBulkDeleting}>
+              Bekor qilish
+            </Button>
+            <Button variant="destructive" className="rounded-xl flex-1 sm:flex-none"
+              onClick={confirmBulkDelete} disabled={isBulkDeleting}>
+              {isBulkDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Hamma uchun o'chirish"}
             </Button>
           </div>
         </DialogContent>
